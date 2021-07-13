@@ -1,1 +1,1 @@
-phonebook-be-v2
+Phonebook BE
