@@ -8,6 +8,7 @@ const Person = require('./models/person');
 
 app.use(cors());
 app.use(express.static('build'));
+app.use(express.json());
 
 var morgan = require('morgan');
 
@@ -22,23 +23,6 @@ morgan.token('post', (request) => {
 
 app.use(morgan('postFormat'));
 
-let persons = [
-    {
-        id: 1,
-        name: "Hester",
-        number: "03131"
-    },
-    {
-        id: 2,
-        name: "Tom",
-        number: "011231"
-    },
-    {
-        id: 3,
-        name: "Wren",
-        number: "03s31"
-    }
-];
 
 app.get('/', (request, response) => {
     response.send("<h1>Hello There</h1>");
@@ -72,12 +56,20 @@ app.delete('/api/persons/:id', (req, res) => {
 
 app.post('/api/persons', (request, response) => {
     const body = request.body;
-    
-    if (!body) {
-        return console.log('no body')
-    }
+    console.log(body.name)
 
+    if (body.name === undefined) {
+        return response.json({ error: 'Content missing'})
+    };
 
+    const person = new Person({
+        name: body.name,
+        number: body.number
+    });
+
+    person.save().then(savedPerson => {
+        response.json(savedPerson)
+    });
   });
 
 app.get('/info', (request, response) => {
