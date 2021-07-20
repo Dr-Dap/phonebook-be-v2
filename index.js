@@ -34,23 +34,24 @@ app.get('/api/persons', (request, response) => {
     });
 });
 
-app.get('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id);
-    const person = persons.find(person => person.id === id);
-    
-    if (person) {
-        response.json(person);
-    } else {
-        response.status(404).end();
-    }
+app.get('/api/persons/:id', (request, response, next) => {
+    Person.findById(request.params.id)
+    .then(person => {
+        if (person) {
+            response.json(person);
+        } else {
+            response.status(404).end();
+        }
+    })
+    .catch(error => next(error))
 });
 
-app.delete('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id);
-
-    persons.filter(person => person.id !== id);
-
-    res.status(204).end();
+app.delete('/api/persons/:id', (request, response, next) => {
+    Person.findByIdAndRemove(request.params.id)
+    .then(result => {
+        response.status(204).end()
+    })
+    .catch(error => next(error))
 });
 
 
@@ -76,6 +77,18 @@ app.get('/info', (request, response) => {
     const personsSum = persons.length;
     response.send(`<p>Phonebook has ${personsSum} persons</p><p>${Date()}</p>`)
 });
+
+const errorHandler = (error, request, response, next) => {
+    console.error(error);
+
+    if (error.name === 'CastError') {
+        response.status(400).send({error: 'Malformatted id'});
+    };
+    
+    next(error);
+};
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
